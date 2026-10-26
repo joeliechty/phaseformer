@@ -1,0 +1,29 @@
+# Recreate with:
+#   conda env create -f environment.yml
+#
+# Two constraints drive almost everything here:
+#   * theseus-ai 0.2.3 publishes wheels for cp38/cp39/cp310 ONLY, so Python must be 3.10.
+#     On 3.11+ pip falls back to the sdist, which refuses to build without torch already
+#     present and then dies compiling scikit-sparse against a missing cholmod.h.
+#   * torch 2.1.2 predates the NumPy 2 ABI break, so numpy must stay below 2.
+name: fm_bc
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - suitesparse           # provides cholmod.h, which scikit-sparse compiles against
+  - numpy<2
+  - scipy<1.14
+  - pip
+  - pip:
+      # torch must be installed before theseus-ai: theseus's setup.py imports it at build time.
+      - --extra-index-url https://download.pytorch.org/whl/cu121
+      - torch==2.1.2+cu121
+      - scikit-sparse
+      - theseus-ai==0.2.3   # pulls torchlie + torchkin
+      # torchkin imports urdf_parser_py but does not declare it. Without this,
+      # `import theseus` fails on a clean environment.
+      - urdf_parser_py
+      - matplotlib
+      - pillow              # matplotlib animation writer
+      - pytest

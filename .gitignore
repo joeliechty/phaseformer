@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+
+data/
+runs*/
+logs/
+output/
+
+*.DS_Store
+
+# Lean build (lean/): Mathlib cache and build products.
+.lake/

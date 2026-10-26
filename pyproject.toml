@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fm-bc"
+version = "0.1.0"
+description = "Phase-conditioned flow-matching behaviour cloning on SE(2): skate navigation (demos from a Theseus planner) and Push-T"
+readme = "README.md"
+license = { text = "MIT" }
+# theseus-ai 0.2.3 ships wheels for cp38-cp310 only.
+requires-python = ">=3.8,<3.11"
+dependencies = [
+    "numpy<2",          # torch 2.1.2 predates the NumPy 2 ABI break
+    "scipy<1.14",
+    "theseus-ai==0.2.3",
+    "urdf_parser_py",   # undeclared torchkin dependency
+    "matplotlib",
+    "pillow",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+# Only scripts/pusht/convert_pusht.py needs zarr, and only once: it reads the Push-T replay buffer
+# and writes a .npz that everything downstream consumes. The import is lazy, so the rest of the
+# Push-T pipeline runs without it. No upper bound -- the reader uses only the API that zarr 2.x
+# and 3.x share, and the Python pin picks the version (zarr 3 needs >=3.11, this env is 3.10).
+pusht = ["zarr>=2.16"]
+# Closed-loop Push-T rollouts (fm_bc/pusht/sim.py, imported lazily). gym-pusht 0.1.6 calls
+# Space.add_collision_handler, which pymunk 7 removed, so pymunk stays on 6.x. Install with user
+# site-packages hidden (PYTHONNOUSERSITE=1) or pip counts ~/.local copies of opencv/shapely as
+# installed while the env cannot import them.
+pusht-sim = ["gym-pusht==0.1.6", "pymunk>=6.6,<7", "opencv-python-headless<4.12"]
+
+[tool.setuptools.packages.find]
+include = ["skate_planner*", "fm_bc*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
